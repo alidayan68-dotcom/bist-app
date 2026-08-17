@@ -7,17 +7,28 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Kodu Cek
       uses: actions/checkout@v4
 
-    - name: APK Derle (Buildozer Action)
-      uses: Artemis-A/buildozer-action@v1.2.0
-      with:
-        command: buildozer -v android debug
-        buildozer_version: master
+    - name: Python ve Sistem Paketlerini Kur
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential git ccache libffi-dev libssl-dev libtool autoconf automake gettext zlib1g-dev libltdl-dev pkg-config openjdk-17-jdk zip unzip python3-pip python3-setuptools
+        python3 -m pip install --upgrade pip
+        python3 -m pip install "cython<3.0.0" buildozer
+
+    - name: SDK Lisanslarını ve Paketlerini Önceden Onayla
+      run: |
+        mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+        printf "24333735771d99dcd2263d239e0713700a7b2b57\n89330822745758060100d856419e609a24131121\n7a93463f0350b413a3a99edba758211091690e0b\n832544e9d38d0119a8f80c341825a0433e547374\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333735771d99dcd2263d239e0713700a7b2b57" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        printf "84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0b7af1406d203671482d45470d41d6d" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+
+    - name: APK Derle
+      run: |
+        buildozer -v android debug
 
     - name: APK Hazırla
       run: |

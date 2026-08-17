@@ -11,12 +11,16 @@ jobs:
 
     steps:
     - name: Kodu Cek
-      uses: actions/checkout@v4
+      run: |
+        git clone https://github.com/${{ github.repository }}.git .
+        git checkout ${{ github.sha }}
 
-    - name: Spec Dosyasına Sabit NDK Ayarı Bas
+    - name: Root Uyarısını Kapat ve NDK Sabitle
       run: |
         sed -i 's/^p4a.branch =.*/p4a.branch = v2024.01.21/' buildozer.spec || true
         sed -i 's/^android.ndk =.*/android.ndk = 25b/' buildozer.spec || true
+        sed -i 's/^warn_on_root =.*/warn_on_root = 0/' buildozer.spec || true
+        grep -q "warn_on_root" buildozer.spec || echo -e "\nwarn_on_root = 0" >> buildozer.spec
 
     - name: Docker İçinde APK Derle
       uses: addnab/docker-run-action@v3

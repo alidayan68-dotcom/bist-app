@@ -7,27 +7,19 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Repoyu Çek
+      uses: actions/checkout@v4
 
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Install dependencies
+    - name: Docker İçinde APK Derle
       run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential git ccache libffi-dev libssl-dev libtool autoconf automake gettext zlib1g-dev libltdl-dev pkg-config openjdk-17-jdk zip unzip
-        pip install --upgrade pip setuptools "cython<3.0.0" buildozer
+        docker run --rm \
+          -v ${{ github.workspace }}:/home/user/hostpython \
+          kivy/buildozer buildozer -v android debug
 
-    - name: Build with Buildozer
-      run: |
-        buildozer -v android debug
-
-    - name: Upload APK
+    - name: APK Dosyasını Yükle
       uses: actions/upload-artifact@v4
       with:
         name: bist-app-apk

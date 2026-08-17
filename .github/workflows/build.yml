@@ -16,15 +16,33 @@ jobs:
     - name: Python ve Sistem Paketlerini Kur
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential git ccache libffi-dev libssl-dev libtool autoconf automake gettext zlib1g-dev libltdl-dev pkg-config openjdk-17-jdk zip unzip python3-pip python3-setuptools
+        sudo apt-get install -y build-essential git ccache libffi-dev libssl-dev libtool autoconf automake gettext zlib1g-dev libltdl-dev pkg-config openjdk-17-jdk zip unzip python3-pip python3-setuptools wget
         python3 -m pip install --upgrade pip
-        python3 -m pip install "cython<3.0.0" buildozer
+        python3 -m pip install "cython<3.0.0" "buildozer==1.5.0"
 
-    - name: SDK Lisanslarını ve Paketlerini Önceden Onayla
+    - name: Android SDK ve Cmdline-Tools Kur (sdkmanager Düzeltmesi)
       run: |
+        # SDK ve cmdline-tools dizinlerini oluştur
+        mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest
+        mkdir -p ~/.buildozer/android/platform/android-sdk/tools/bin
         mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-        printf "24333735771d99dcd2263d239e0713700a7b2b57\n89330822745758060100d856419e609a24131121\n7a93463f0350b413a3a99edba758211091690e0b\n832544e9d38d0119a8f80c341825a0433e547374\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333735771d99dcd2263d239e0713700a7b2b57" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-        printf "84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0b7af1406d203671482d45470d41d6d" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+
+        # Resmi Android Command Line Tools indir
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+        unzip -q cmdline-tools.zip
+        mv cmdline-tools/* ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
+        rm -rf cmdline-tools cmdline-tools.zip
+
+        # sdkmanager sembolik bağlantısını eski Buildozer yapısına uygun konuma bağla
+        ln -s ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
+
+        # Lisansları kabul et
+        yes | ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+    - name: Spec Dosyasında NDK 25b Sabitle
+      run: |
+        sed -i 's/^android.ndk =.*/android.ndk = 25b/' buildozer.spec || true
+        sed -i 's/^p4a.branch =.*/p4a.branch = release-2023.05.21/' buildozer.spec || true
 
     - name: APK Derle
       run: |

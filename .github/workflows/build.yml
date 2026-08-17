@@ -7,20 +7,32 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-    - name: Repoyu Çek
-      uses: actions/checkout@v4
-
-    - name: Docker İçinde APK Derle
+    - name: Kodu Cek
       run: |
-        docker run --rm \
-          -v ${{ github.workspace }}:/home/user/hostpython \
-          kivy/buildozer buildozer -v android debug
+        git clone https://github.com/${{ github.repository }}.git .
+        git checkout ${{ github.sha }}
 
-    - name: APK Dosyasını Yükle
+    - name: Python ve Bağımlılıkları Kur
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential git ccache libffi-dev libssl-dev libtool autoconf automake gettext zlib1g-dev libltdl-dev pkg-config openjdk-17-jdk zip unzip python3-pip python3-setuptools
+        python3 -m pip install --upgrade pip
+        python3 -m pip install "cython<3.0.0" buildozer
+
+    - name: APK Derle
+      run: |
+        buildozer -v android debug
+
+    - name: APK Hazırla
+      run: |
+        mkdir -p output_apk
+        cp bin/*.apk output_apk/ 2>/dev/null || true
+
+    - name: APK Yukle
       uses: actions/upload-artifact@v4
       with:
         name: bist-app-apk
-        path: bin/*.apk
+        path: output_apk/

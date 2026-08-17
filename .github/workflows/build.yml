@@ -20,7 +20,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential git ccache libffi-dev libssl-dev libtool autoconf automake gettext zlib1g-dev libltdl-dev pkg-config openjdk-17-jdk zip unzip python3-pip python3-setuptools
         python3 -m pip install --upgrade pip
-        python3 -m pip install "cython<3.0.0" buildozer
+        # p4a'yı NDK 25b destekleyen kararlı sürüme sabitliyoruz
+        python3 -m pip install "cython<3.0.0" "buildozer==1.5.0" "python-for-android==2024.1.21"
 
     - name: SDK Lisans Klasörünü Hazırla
       run: |
@@ -29,7 +30,8 @@ jobs:
 
     - name: APK Derle
       run: |
-        buildozer -v android debug
+        # p4a dayatmasını kırmak için Buildozer'a NDK 25b'yi doğrudan parametre olarak basıyoruz
+        buildozer -v android debug APP_ANDROID_NDK=25b APP_ANDROID_API=33
 
     - name: APK Hazırla
       run: |
